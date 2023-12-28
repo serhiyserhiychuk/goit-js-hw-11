@@ -1,10 +1,19 @@
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
+import simpleLightbox from 'simplelightbox';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const form = document.querySelector('.image-form');
 const input = document.querySelector('.image-input');
 const submitBtn = document.querySelector('.image-button');
 const list = document.querySelector('.image-list');
+
+let gallery = new SimpleLightbox('.image-list a', {
+  captionsData: 'alt',
+  captionPosition: 'bottom',
+  captionDelay: 250,
+});
 
 form.addEventListener('submit', submitHandler);
 
@@ -17,14 +26,32 @@ function submitHandler(event) {
     orientation: 'horizontal',
     safesearch: true,
   };
+  if ((list.innerHTML = '')) {
+    iziToast.info({
+      class: 'errorMessage',
+      message: 'Loading images,please wait...',
+      messageColor: 'black',
+      messageSize: '16px',
+      messageLineHeight: '1.5',
+      backgroundColor: 'yellow',
+      theme: 'light',
+      color: 'yellow',
+      position: 'topRight',
+    });
+  }
+
   fetch(
     `https://pixabay.com/api/?key=${options.key}&q=${options.q}&type=${options.type}&orientation=${options.orientation}&safesearch=${options.safesearch}`,
     options
   )
     .then(responce => {
+      if (!responce.ok) {
+        throw new Error(responce.status);
+      }
       return responce.json();
     })
     .then(responce => {
+      list.innerHTML = '';
       if (responce.total === 0) {
         iziToast.error({
           class: 'errorMessage',
@@ -41,7 +68,8 @@ function submitHandler(event) {
       } else {
         const images = responce.hits.map(
           image =>
-            `<li class="photo-card">
+            `<a href="${image.largeImageURL}"
+            <li class="photo-card">
             <img class="photo" src="${image.webformatURL}" alt="${image.tags}">
             <div class="card-container">
             <p>Likes</p>
@@ -55,9 +83,15 @@ function submitHandler(event) {
             <p>${image.comments}</p>
             <p>${image.downloads}</p>
             </div>
-            </li>`
+            </li>
+            </a>`
         );
-        list.insertAdjacentHTML('beforeend', images);
+        list.insertAdjacentHTML('afterbegin', images);
+        gallery.refresh();
+        input.value = '';
       }
+    })
+    .catch(error => {
+      console.log(error);
     });
 }
