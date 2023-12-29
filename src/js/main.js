@@ -8,6 +8,7 @@ const form = document.querySelector('.image-form');
 const input = document.querySelector('.image-input');
 const submitBtn = document.querySelector('.image-button');
 const list = document.querySelector('.image-list');
+const loader = document.querySelector('#loader-span');
 
 let gallery = new SimpleLightbox('.image-list a', {
   captionsData: 'alt',
@@ -26,19 +27,8 @@ function submitHandler(event) {
     orientation: 'horizontal',
     safesearch: true,
   };
-  if ((list.innerHTML = '')) {
-    iziToast.info({
-      class: 'errorMessage',
-      message: 'Loading images,please wait...',
-      messageColor: 'black',
-      messageSize: '16px',
-      messageLineHeight: '1.5',
-      backgroundColor: 'yellow',
-      theme: 'light',
-      color: 'yellow',
-      position: 'topRight',
-    });
-  }
+
+  loader.classList.replace('is-hidden', 'loader');
 
   fetch(
     `https://pixabay.com/api/?key=${options.key}&q=${options.q}&type=${options.type}&orientation=${options.orientation}&safesearch=${options.safesearch}`,
@@ -88,6 +78,7 @@ function submitHandler(event) {
         );
         list.insertAdjacentHTML('afterbegin', images);
         gallery.refresh();
+        loader.classList.replace('loader', 'is-hidden');
         input.value = '';
       }
     })
